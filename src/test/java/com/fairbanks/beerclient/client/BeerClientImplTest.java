@@ -3,9 +3,12 @@ package com.fairbanks.beerclient.client;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fairbanks.beerclient.config.WebClientConfig;
+import com.fairbanks.beerclient.model.BeerDto;
 import com.fairbanks.beerclient.model.BeerPagedList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import reactor.core.publisher.Mono;
 
 
@@ -51,12 +54,32 @@ class BeerClientImplTest {
         System.out.println(beerPagedList.toList());
     }
 
-    @Test
-    void getBeerById() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getBeerById(Boolean showInventoryOnHand) {
+        Mono<BeerPagedList> beerPagedListMono = beerClient.listBeers(1, 1, null, null, null);
+        BeerPagedList beerPagedList = beerPagedListMono.block();
+        BeerDto firstBeer = beerPagedList.toList().get(0);
+
+        Mono<BeerDto> retrievedBeerMono = beerClient.getBeerById(firstBeer.getId(), showInventoryOnHand);
+        BeerDto retrievedBeer = retrievedBeerMono.block();
+
+        assertThat(retrievedBeer).isNotNull();
+        assertThat(retrievedBeer.getId()).isEqualTo(firstBeer.getId());
     }
 
+    @Test
+    void getBeerByUPC() {
+        Mono<BeerPagedList> beerPagedListMono = beerClient.listBeers(1, 1, null, null, null);
+        BeerPagedList beerPagedList = beerPagedListMono.block();
+        BeerDto firstBeer = beerPagedList.toList().get(0);
 
+        Mono<BeerDto> retrievedBeerMono = beerClient.getBeerByUPC(firstBeer.getUpc());
+        BeerDto retrievedBeer = retrievedBeerMono.block();
 
+        assertThat(retrievedBeer).isNotNull();
+        assertThat(retrievedBeer.getUpc()).isEqualTo(firstBeer.getUpc());
+    }
 
 
     @Test
@@ -74,7 +97,5 @@ class BeerClientImplTest {
     }
 
 
-    @Test
-    void getBeerByUPC() {
-    }
+
 }
