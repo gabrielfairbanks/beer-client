@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.fairbanks.beerclient.config.WebClientConfig;
 import com.fairbanks.beerclient.model.BeerDto;
@@ -142,12 +144,16 @@ class BeerClientImplTest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
 
+
     @Test
     void deleteBeerByIdNotFound() {
         Mono<ResponseEntity<Void>> responseEntityMono = beerClient.deleteBeerById(UUID.randomUUID());
 
-        assertThrows(WebClientResponseException.class, () -> {ResponseEntity responseEntity = responseEntityMono.block();});
+        assertThrows(WebClientResponseException.class, () -> {
+            ResponseEntity responseEntity = responseEntityMono.block();
+        });
     }
+
 
     @Test
     void testDeleteBeerHandleException() {
@@ -155,7 +161,7 @@ class BeerClientImplTest {
 
         ResponseEntity<Void> responseEntity = responseEntityMono
             .onErrorResume(throwable -> {
-                if(throwable instanceof WebClientResponseException){
+                if (throwable instanceof WebClientResponseException) {
                     WebClientResponseException exception = (WebClientResponseException) throwable;
                     return Mono.just(ResponseEntity.status(exception.getStatusCode()).build());
                 } else {
@@ -164,6 +170,29 @@ class BeerClientImplTest {
             })
             .block();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+
+    @Test
+    void functionalTestGetBeerById() throws InterruptedException {
+        AtomicReference<String> beerName = new AtomicReference<>();
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        beerClient.listBeers(1, 1, null, null, null)
+            .map(beerPagedList -> beerPagedList.getContent().get(0).getId())
+            .map(beerId -> beerClient.getBeerById(beerId, false))
+            .flatMap(beerDtoMono -> beerDtoMono)
+            .subscribe(beerDto -> {
+                beerName.set(beerDto.getBeerName());
+                System.out.println(beerDto.getBeerName());
+                assertThat(beerDto.getBeerName()).isEqualTo("Galaxy Cat");
+                countDownLatch.countDown();
+            });
+
+        countDownLatch.await();
+
+        assertThat(beerName.get()).isEqualTo("Galaxy Cat");
+
     }
 
 }
