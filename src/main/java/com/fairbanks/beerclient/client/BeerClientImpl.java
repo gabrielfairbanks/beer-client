@@ -2,6 +2,7 @@ package com.fairbanks.beerclient.client;
 
 import java.util.UUID;
 
+import com.fairbanks.beerclient.config.WebClientProperties;
 import com.fairbanks.beerclient.model.BeerDto;
 import com.fairbanks.beerclient.model.BeerStyleEnum;
 import com.fairbanks.beerclient.model.BeerPagedList;
@@ -24,7 +25,10 @@ public class BeerClientImpl implements BeerClient {
 
 
     @Override public Mono<BeerPagedList> listBeers(Integer pageNumber, Integer pageSize, String beerName, String beerStyle, Boolean showInventoryOnhand) {
-        return null;
+        return webClient.get()
+            .uri(WebClientProperties.BEER_V1_PATH)
+            .retrieve()
+            .bodyToMono(BeerPagedList.class);
     }
 
 
