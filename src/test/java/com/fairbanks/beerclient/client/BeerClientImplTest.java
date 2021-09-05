@@ -153,7 +153,7 @@ class BeerClientImplTest {
     void testDeleteBeerHandleException() {
         Mono<ResponseEntity<Void>> responseEntityMono = beerClient.deleteBeerById(UUID.randomUUID());
 
-        ResponseEntity responseEntity = responseEntityMono
+        ResponseEntity<Void> responseEntity = responseEntityMono
             .onErrorResume(throwable -> {
                 if(throwable instanceof WebClientResponseException){
                     WebClientResponseException exception = (WebClientResponseException) throwable;
