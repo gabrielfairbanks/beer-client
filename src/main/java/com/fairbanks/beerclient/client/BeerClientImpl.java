@@ -5,20 +5,21 @@ import java.util.UUID;
 
 import com.fairbanks.beerclient.config.WebClientProperties;
 import com.fairbanks.beerclient.model.BeerDto;
-import com.fairbanks.beerclient.model.BeerStyleEnum;
 import com.fairbanks.beerclient.model.BeerPagedList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+
 
 @Service
 @RequiredArgsConstructor
 public class BeerClientImpl implements BeerClient {
 
     private final WebClient webClient;
+
 
     @Override public Mono<BeerDto> getBeerById(UUID id, Boolean showInventoryOnHand) {
         return webClient.get()
@@ -48,8 +49,12 @@ public class BeerClientImpl implements BeerClient {
     }
 
 
-    @Override public Mono<ResponseEntity> createBeer(BeerDto beerDto) {
-        return null;
+    @Override public Mono<ResponseEntity<Void>> createBeer(BeerDto beerDto) {
+        return webClient.post()
+            .uri(uriBuilder -> uriBuilder.path(WebClientProperties.BEER_V1_PATH).build())
+            .body(BodyInserters.fromValue(beerDto))
+            .retrieve()
+            .toBodilessEntity();
     }
 
 

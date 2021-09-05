@@ -2,6 +2,8 @@ package com.fairbanks.beerclient.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
+
 import com.fairbanks.beerclient.config.WebClientConfig;
 import com.fairbanks.beerclient.model.BeerDto;
 import com.fairbanks.beerclient.model.BeerPagedList;
@@ -9,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
 
 
@@ -16,10 +20,12 @@ class BeerClientImplTest {
 
     BeerClientImpl beerClient;
 
+
     @BeforeEach
-    void setUp(){
+    void setUp() {
         beerClient = new BeerClientImpl(new WebClientConfig().webClient());
     }
+
 
     @Test
     void listBeers() {
@@ -32,6 +38,7 @@ class BeerClientImplTest {
         System.out.println(beerPagedList.toList());
     }
 
+
     @Test
     void listBeersPageSize10() {
         Mono<BeerPagedList> beerPagedListMono = beerClient.listBeers(1, 10, null, null, null);
@@ -42,6 +49,7 @@ class BeerClientImplTest {
         assertThat(beerPagedList.getContent()).hasSize(10);
         System.out.println(beerPagedList.toList());
     }
+
 
     @Test
     void listBeersNoRecords() {
@@ -54,8 +62,9 @@ class BeerClientImplTest {
         System.out.println(beerPagedList.toList());
     }
 
+
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void getBeerById(Boolean showInventoryOnHand) {
         Mono<BeerPagedList> beerPagedListMono = beerClient.listBeers(1, 1, null, null, null);
         BeerPagedList beerPagedList = beerPagedListMono.block();
@@ -67,6 +76,7 @@ class BeerClientImplTest {
         assertThat(retrievedBeer).isNotNull();
         assertThat(retrievedBeer.getId()).isEqualTo(firstBeer.getId());
     }
+
 
     @Test
     void getBeerByUPC() {
@@ -84,6 +94,17 @@ class BeerClientImplTest {
 
     @Test
     void createBeer() {
+        BeerDto beer = BeerDto.builder()
+            .beerName("Birra Moretti")
+            .beerStyle("IPA")
+            .upc("1234")
+            .price(new BigDecimal("10.99"))
+            .build();
+
+        Mono<ResponseEntity<Void>> responseEntityMono = beerClient.createBeer(beer);
+        ResponseEntity responseEntity = responseEntityMono.block();
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
     }
 
 
@@ -95,7 +116,5 @@ class BeerClientImplTest {
     @Test
     void deleteBeerById() {
     }
-
-
 
 }
