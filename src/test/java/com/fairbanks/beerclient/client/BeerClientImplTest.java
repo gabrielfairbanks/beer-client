@@ -136,7 +136,7 @@ class BeerClientImplTest {
 
         Mono<ResponseEntity<Void>> responseEntityMono = beerClient.deleteBeerById(firstBeer.getId());
         ResponseEntity responseEntity = responseEntityMono.block();
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
 
 }
