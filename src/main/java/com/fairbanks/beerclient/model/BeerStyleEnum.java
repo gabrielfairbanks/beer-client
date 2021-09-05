@@ -1,4 +1,4 @@
-package com.fairbanks.beerclient.domain;
+package com.fairbanks.beerclient.model;
 
 public enum BeerStyleEnum {
     LAGER,
